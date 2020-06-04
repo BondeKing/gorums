@@ -47,7 +47,7 @@ var orderingLoop = `
 {{- if hasPerNodeArg .Method}}
 		nodeArg := f(in, n.ID())
 		if nodeArg == nil {
-			expected--
+			//expected--
 			continue
 		}
 		data, err := {{$marshalOptions}}{AllowPartial: true, Deterministic: true}.Marshal(nodeArg)
@@ -66,9 +66,10 @@ var orderingLoop = `
 
 var orderingReply = `
 	var (
-		replyValues = make([]*{{$out}}, 0, expected)
+		//replyValues = make([]*{{$out}}, 0, expected)
 		errs []GRPCError
 		quorum      bool
+		replys = make(map[uint32]*{{$out}})
 	)
 
 	for {
@@ -81,20 +82,21 @@ var orderingReply = `
 			{{template "traceLazyLog"}}
 			reply := new({{$out}})
 			err := {{$unmarshalOptions}}{AllowPartial: true, DiscardUnknown: true}.Unmarshal(r.reply, reply)
+			replys[r.nid] = reply
 			if err != nil {
 				errs = append(errs, GRPCError{r.nid, {{$errorf}}("failed to unmarshal reply: %w", err)})
 				break
 			}
-			replyValues = append(replyValues, reply)
-			if resp, quorum = c.qspec.{{$method}}QF(in, replyValues); quorum {
+			//replyValues = append(replyValues, reply)
+			if resp, quorum = c.qspec.{{$method}}QF(in, replys); quorum {
 				return resp, nil
 			}
 		case <-ctx.Done():
-			return resp, QuorumCallError{ctx.Err().Error(), len(replyValues), errs}
+			return resp, QuorumCallError{ctx.Err().Error(), len(replys), errs}
 		}
 
-		if len(errs)+len(replyValues) == expected {
-			return resp, QuorumCallError{"incomplete call", len(replyValues), errs}
+		if len(errs)+len(replys) == expected {
+			return resp, QuorumCallError{"incomplete call", len(replys), errs}
 		}
 	}
 }

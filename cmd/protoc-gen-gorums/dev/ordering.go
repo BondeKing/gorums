@@ -16,7 +16,7 @@ import (
 )
 
 type orderingResult struct {
-	nid   uint32
+	nid   uint32 // Give the qspec this id when sending it a result from a request
 	reply []byte
 	err   error
 }

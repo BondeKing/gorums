@@ -61,9 +61,10 @@ func (c *Configuration) OrderingQC(ctx context.Context, in *Request) (resp *Resp
 	}
 
 	var (
-		replyValues = make([]*Response, 0, expected)
-		errs        []GRPCError
-		quorum      bool
+		//replyValues = make([]*Response, 0, expected)
+		errs   []GRPCError
+		quorum bool
+		replys = make(map[uint32]*Response)
 	)
 
 	for {
@@ -80,20 +81,21 @@ func (c *Configuration) OrderingQC(ctx context.Context, in *Request) (resp *Resp
 
 			reply := new(Response)
 			err := proto.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(r.reply, reply)
+			replys[r.nid] = reply
 			if err != nil {
 				errs = append(errs, GRPCError{r.nid, fmt.Errorf("failed to unmarshal reply: %w", err)})
 				break
 			}
-			replyValues = append(replyValues, reply)
-			if resp, quorum = c.qspec.OrderingQCQF(in, replyValues); quorum {
+			//replyValues = append(replyValues, reply)
+			if resp, quorum = c.qspec.OrderingQCQF(in, replys); quorum {
 				return resp, nil
 			}
 		case <-ctx.Done():
-			return resp, QuorumCallError{ctx.Err().Error(), len(replyValues), errs}
+			return resp, QuorumCallError{ctx.Err().Error(), len(replys), errs}
 		}
 
-		if len(errs)+len(replyValues) == expected {
-			return resp, QuorumCallError{"incomplete call", len(replyValues), errs}
+		if len(errs)+len(replys) == expected {
+			return resp, QuorumCallError{"incomplete call", len(replys), errs}
 		}
 	}
 }
@@ -162,7 +164,7 @@ func (c *Configuration) OrderingPerNodeArg(ctx context.Context, in *Request, f f
 	for _, n := range c.nodes {
 		nodeArg := f(in, n.ID())
 		if nodeArg == nil {
-			expected--
+			//expected--
 			continue
 		}
 		data, err := proto.MarshalOptions{AllowPartial: true, Deterministic: true}.Marshal(nodeArg)
@@ -178,9 +180,10 @@ func (c *Configuration) OrderingPerNodeArg(ctx context.Context, in *Request, f f
 	}
 
 	var (
-		replyValues = make([]*Response, 0, expected)
-		errs        []GRPCError
-		quorum      bool
+		//replyValues = make([]*Response, 0, expected)
+		errs   []GRPCError
+		quorum bool
+		replys = make(map[uint32]*Response)
 	)
 
 	for {
@@ -197,20 +200,21 @@ func (c *Configuration) OrderingPerNodeArg(ctx context.Context, in *Request, f f
 
 			reply := new(Response)
 			err := proto.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(r.reply, reply)
+			replys[r.nid] = reply
 			if err != nil {
 				errs = append(errs, GRPCError{r.nid, fmt.Errorf("failed to unmarshal reply: %w", err)})
 				break
 			}
-			replyValues = append(replyValues, reply)
-			if resp, quorum = c.qspec.OrderingPerNodeArgQF(in, replyValues); quorum {
+			//replyValues = append(replyValues, reply)
+			if resp, quorum = c.qspec.OrderingPerNodeArgQF(in, replys); quorum {
 				return resp, nil
 			}
 		case <-ctx.Done():
-			return resp, QuorumCallError{ctx.Err().Error(), len(replyValues), errs}
+			return resp, QuorumCallError{ctx.Err().Error(), len(replys), errs}
 		}
 
-		if len(errs)+len(replyValues) == expected {
-			return resp, QuorumCallError{"incomplete call", len(replyValues), errs}
+		if len(errs)+len(replys) == expected {
+			return resp, QuorumCallError{"incomplete call", len(replys), errs}
 		}
 	}
 }
@@ -287,9 +291,10 @@ func (c *Configuration) OrderingCustomReturnType(ctx context.Context, in *Reques
 	}
 
 	var (
-		replyValues = make([]*Response, 0, expected)
-		errs        []GRPCError
-		quorum      bool
+		//replyValues = make([]*Response, 0, expected)
+		errs   []GRPCError
+		quorum bool
+		replys = make(map[uint32]*Response)
 	)
 
 	for {
@@ -306,20 +311,21 @@ func (c *Configuration) OrderingCustomReturnType(ctx context.Context, in *Reques
 
 			reply := new(Response)
 			err := proto.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(r.reply, reply)
+			replys[r.nid] = reply
 			if err != nil {
 				errs = append(errs, GRPCError{r.nid, fmt.Errorf("failed to unmarshal reply: %w", err)})
 				break
 			}
-			replyValues = append(replyValues, reply)
-			if resp, quorum = c.qspec.OrderingCustomReturnTypeQF(in, replyValues); quorum {
+			//replyValues = append(replyValues, reply)
+			if resp, quorum = c.qspec.OrderingCustomReturnTypeQF(in, replys); quorum {
 				return resp, nil
 			}
 		case <-ctx.Done():
-			return resp, QuorumCallError{ctx.Err().Error(), len(replyValues), errs}
+			return resp, QuorumCallError{ctx.Err().Error(), len(replys), errs}
 		}
 
-		if len(errs)+len(replyValues) == expected {
-			return resp, QuorumCallError{"incomplete call", len(replyValues), errs}
+		if len(errs)+len(replys) == expected {
+			return resp, QuorumCallError{"incomplete call", len(replys), errs}
 		}
 	}
 }
@@ -388,7 +394,7 @@ func (c *Configuration) OrderingCombo(ctx context.Context, in *Request, f func(*
 	for _, n := range c.nodes {
 		nodeArg := f(in, n.ID())
 		if nodeArg == nil {
-			expected--
+			//expected--
 			continue
 		}
 		data, err := proto.MarshalOptions{AllowPartial: true, Deterministic: true}.Marshal(nodeArg)
@@ -404,9 +410,10 @@ func (c *Configuration) OrderingCombo(ctx context.Context, in *Request, f func(*
 	}
 
 	var (
-		replyValues = make([]*Response, 0, expected)
-		errs        []GRPCError
-		quorum      bool
+		//replyValues = make([]*Response, 0, expected)
+		errs   []GRPCError
+		quorum bool
+		replys = make(map[uint32]*Response)
 	)
 
 	for {
@@ -423,20 +430,21 @@ func (c *Configuration) OrderingCombo(ctx context.Context, in *Request, f func(*
 
 			reply := new(Response)
 			err := proto.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(r.reply, reply)
+			replys[r.nid] = reply
 			if err != nil {
 				errs = append(errs, GRPCError{r.nid, fmt.Errorf("failed to unmarshal reply: %w", err)})
 				break
 			}
-			replyValues = append(replyValues, reply)
-			if resp, quorum = c.qspec.OrderingComboQF(in, replyValues); quorum {
+			//replyValues = append(replyValues, reply)
+			if resp, quorum = c.qspec.OrderingComboQF(in, replys); quorum {
 				return resp, nil
 			}
 		case <-ctx.Done():
-			return resp, QuorumCallError{ctx.Err().Error(), len(replyValues), errs}
+			return resp, QuorumCallError{ctx.Err().Error(), len(replys), errs}
 		}
 
-		if len(errs)+len(replyValues) == expected {
-			return resp, QuorumCallError{"incomplete call", len(replyValues), errs}
+		if len(errs)+len(replys) == expected {
+			return resp, QuorumCallError{"incomplete call", len(replys), errs}
 		}
 	}
 }
@@ -577,10 +585,11 @@ func (c *Configuration) orderingFutureRecv(ctx context.Context, in *Request, msg
 	defer c.mgr.deleteChan(msgID)
 
 	var (
-		replyValues = make([]*Response, 0, c.n)
-		reply       *Response
-		errs        []GRPCError
-		quorum      bool
+		//replyValues	= make([]*Response, 0, c.n)
+		reply  *Response
+		errs   []GRPCError
+		quorum bool
+		replys = make(map[uint32]*Response)
 	)
 
 	for {
@@ -593,21 +602,22 @@ func (c *Configuration) orderingFutureRecv(ctx context.Context, in *Request, msg
 			}
 			data := new(Response)
 			err := proto.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(r.reply, data)
+			replys[r.nid] = data
 			if err != nil {
 				errs = append(errs, GRPCError{r.nid, fmt.Errorf("failed to unmarshal reply: %w", err)})
 				break
 			}
-			replyValues = append(replyValues, data)
-			if reply, quorum = c.qspec.OrderingFutureQF(in, replyValues); quorum {
+			//replyValues = append(replyValues, data)
+			if reply, quorum = c.qspec.OrderingFutureQF(in, replys); quorum {
 				fut.Response, fut.err = reply, nil
 				return
 			}
 		case <-ctx.Done():
-			fut.Response, fut.err = reply, QuorumCallError{ctx.Err().Error(), len(replyValues), errs}
+			fut.Response, fut.err = reply, QuorumCallError{ctx.Err().Error(), len(replys), errs}
 			return
 		}
-		if len(errs)+len(replyValues) == expected {
-			fut.Response, fut.err = reply, QuorumCallError{"incomplete call", len(replyValues), errs}
+		if len(errs)+len(replys) == expected {
+			fut.Response, fut.err = reply, QuorumCallError{"incomplete call", len(replys), errs}
 			return
 		}
 	}
@@ -693,10 +703,11 @@ func (c *Configuration) orderingFuturePerNodeArgRecv(ctx context.Context, in *Re
 	defer c.mgr.deleteChan(msgID)
 
 	var (
-		replyValues = make([]*Response, 0, c.n)
-		reply       *Response
-		errs        []GRPCError
-		quorum      bool
+		//replyValues	= make([]*Response, 0, c.n)
+		reply  *Response
+		errs   []GRPCError
+		quorum bool
+		replys = make(map[uint32]*Response)
 	)
 
 	for {
@@ -709,21 +720,22 @@ func (c *Configuration) orderingFuturePerNodeArgRecv(ctx context.Context, in *Re
 			}
 			data := new(Response)
 			err := proto.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(r.reply, data)
+			replys[r.nid] = data
 			if err != nil {
 				errs = append(errs, GRPCError{r.nid, fmt.Errorf("failed to unmarshal reply: %w", err)})
 				break
 			}
-			replyValues = append(replyValues, data)
-			if reply, quorum = c.qspec.OrderingFuturePerNodeArgQF(in, replyValues); quorum {
+			//replyValues = append(replyValues, data)
+			if reply, quorum = c.qspec.OrderingFuturePerNodeArgQF(in, replys); quorum {
 				fut.Response, fut.err = reply, nil
 				return
 			}
 		case <-ctx.Done():
-			fut.Response, fut.err = reply, QuorumCallError{ctx.Err().Error(), len(replyValues), errs}
+			fut.Response, fut.err = reply, QuorumCallError{ctx.Err().Error(), len(replys), errs}
 			return
 		}
-		if len(errs)+len(replyValues) == expected {
-			fut.Response, fut.err = reply, QuorumCallError{"incomplete call", len(replyValues), errs}
+		if len(errs)+len(replys) == expected {
+			fut.Response, fut.err = reply, QuorumCallError{"incomplete call", len(replys), errs}
 			return
 		}
 	}
@@ -803,10 +815,11 @@ func (c *Configuration) orderingFutureCustomReturnTypeRecv(ctx context.Context, 
 	defer c.mgr.deleteChan(msgID)
 
 	var (
-		replyValues = make([]*Response, 0, c.n)
-		reply       *MyResponse
-		errs        []GRPCError
-		quorum      bool
+		//replyValues	= make([]*Response, 0, c.n)
+		reply  *MyResponse
+		errs   []GRPCError
+		quorum bool
+		replys = make(map[uint32]*Response)
 	)
 
 	for {
@@ -819,21 +832,22 @@ func (c *Configuration) orderingFutureCustomReturnTypeRecv(ctx context.Context, 
 			}
 			data := new(Response)
 			err := proto.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(r.reply, data)
+			replys[r.nid] = data
 			if err != nil {
 				errs = append(errs, GRPCError{r.nid, fmt.Errorf("failed to unmarshal reply: %w", err)})
 				break
 			}
-			replyValues = append(replyValues, data)
-			if reply, quorum = c.qspec.OrderingFutureCustomReturnTypeQF(in, replyValues); quorum {
+			//replyValues = append(replyValues, data)
+			if reply, quorum = c.qspec.OrderingFutureCustomReturnTypeQF(in, replys); quorum {
 				fut.MyResponse, fut.err = reply, nil
 				return
 			}
 		case <-ctx.Done():
-			fut.MyResponse, fut.err = reply, QuorumCallError{ctx.Err().Error(), len(replyValues), errs}
+			fut.MyResponse, fut.err = reply, QuorumCallError{ctx.Err().Error(), len(replys), errs}
 			return
 		}
-		if len(errs)+len(replyValues) == expected {
-			fut.MyResponse, fut.err = reply, QuorumCallError{"incomplete call", len(replyValues), errs}
+		if len(errs)+len(replys) == expected {
+			fut.MyResponse, fut.err = reply, QuorumCallError{"incomplete call", len(replys), errs}
 			return
 		}
 	}
@@ -919,10 +933,11 @@ func (c *Configuration) orderingFutureComboRecv(ctx context.Context, in *Request
 	defer c.mgr.deleteChan(msgID)
 
 	var (
-		replyValues = make([]*Response, 0, c.n)
-		reply       *MyResponse
-		errs        []GRPCError
-		quorum      bool
+		//replyValues	= make([]*Response, 0, c.n)
+		reply  *MyResponse
+		errs   []GRPCError
+		quorum bool
+		replys = make(map[uint32]*Response)
 	)
 
 	for {
@@ -935,21 +950,22 @@ func (c *Configuration) orderingFutureComboRecv(ctx context.Context, in *Request
 			}
 			data := new(Response)
 			err := proto.UnmarshalOptions{AllowPartial: true, DiscardUnknown: true}.Unmarshal(r.reply, data)
+			replys[r.nid] = data
 			if err != nil {
 				errs = append(errs, GRPCError{r.nid, fmt.Errorf("failed to unmarshal reply: %w", err)})
 				break
 			}
-			replyValues = append(replyValues, data)
-			if reply, quorum = c.qspec.OrderingFutureComboQF(in, replyValues); quorum {
+			//replyValues = append(replyValues, data)
+			if reply, quorum = c.qspec.OrderingFutureComboQF(in, replys); quorum {
 				fut.MyResponse, fut.err = reply, nil
 				return
 			}
 		case <-ctx.Done():
-			fut.MyResponse, fut.err = reply, QuorumCallError{ctx.Err().Error(), len(replyValues), errs}
+			fut.MyResponse, fut.err = reply, QuorumCallError{ctx.Err().Error(), len(replys), errs}
 			return
 		}
-		if len(errs)+len(replyValues) == expected {
-			fut.MyResponse, fut.err = reply, QuorumCallError{"incomplete call", len(replyValues), errs}
+		if len(errs)+len(replys) == expected {
+			fut.MyResponse, fut.err = reply, QuorumCallError{"incomplete call", len(replys), errs}
 			return
 		}
 	}
